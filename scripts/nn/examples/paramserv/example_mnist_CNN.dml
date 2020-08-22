@@ -21,7 +21,10 @@
 
 /*
 * Sample Invocation
-  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_CNN.dml -nvargs epochs=2 workers=10 utype=BSP freq=BATCH batchsize=32 scheme=DISJOINT_CONTIGUOUS mode=LOCAL C=1 Hin=28 Win=28 train=/Users/tobias/Developer/mnist_2NN/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_2NN/mnist_data/mnist_test.csv
+*
+*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_CNN.dml -nvargs mode=NORMAL epochs=2 batchsize=32 C=1 Hin=28 Win=28 learning_rate=0.01 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
+*
+*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_CNN.dml -nvargs mode=PARAMSERV epochs=4 workers=10 batchsize=32 C=1 Hin=28 Win=28 learning_rate=0.001 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
 */
 
 source("scripts/nn/examples/paramserv/CNN.dml") as CNN
@@ -31,15 +34,15 @@ source("scripts/nn/layers/cross_entropy_loss.dml") as cross_entropy_loss
 ## general args
 train_data = $train
 test_data = $test
-epochs = ifdef($epochs, 1)
-batch_size = ifdef($batch_size, 32)
-learning_rate = ifdef($learning_rate, 0.2)
 C = $C
 Hin = $Hin
 Win = $Win
+epochs = ifdef($epochs, 1)
+batch_size = ifdef($batch_size, 32)
+learning_rate = ifdef($learning_rate, 0.01)
 mode = ifdef($mode, "NORMAL")
 ## paramserv specific args
-workers = ifdef($workers, 10)
+workers = ifdef($workers, 1)
 utype = ifdef($utype, "BSP")
 freq = ifdef($freq, "BATCH")
 scheme = ifdef($scheme, "DISJOINT_CONTIGUOUS")
@@ -62,20 +65,19 @@ y_val = labels[1:5000,]
 
 # differentiate test modes
 if (mode == "NORMAL") {
-  
+  model = CNN::train(X, y, X_val, y_val, C, Hin, Win, epochs, batch_size, learning_rate)
 } else if (mode == "PARAMSERV") {
-  model = CNN::train_paramserv(X, y, X_val, y_val, C, Hin, Win, epochs, workers, utype, freq, batch_size, scheme, mode, learning_rate)
+  model = CNN::train_paramserv(X, y, X_val, y_val, C, Hin, Win, epochs, workers, utype, freq, batch_size, scheme, paramserv_mode, learning_rate)
 }
 
 # Compute validation loss & accuracy
-probs_val = CNN::predict(X_val, C, Hin, Win, $batchsize, model)
+probs_val = CNN::predict(X_val, C, Hin, Win, batch_size, model)
 [loss_val, accuracy_val] = CNN::eval(probs_val, y_val)
-print("Val Loss: " + loss_val + ", Val Accuracy: " + accuracy_val)
+print("\n[+] validation loss: " + loss_val + ", validation accuracy: " + accuracy_val)
 
 # Read test data
-data = read($test, format="csv")
+data = read(test_data, format="csv")
 n = nrow(data)
-
 # Extract images and labels
 X_test = data[,2:ncol(data)]
 y_test = data[,1]
@@ -86,4 +88,4 @@ y_test = table(seq(1, n), y_test+1, n, 10)
 # Compute test loss & accuracy
 probs_test = CNN::predict(X_test, C, Hin, Win, $batchsize, model)
 [loss_test, accuracy_test] = CNN::eval(probs_test, y_test)
-print("Test Loss: " + loss_test + ", Test Accuracy: " + accuracy_test)
+print("[+] test loss: " + loss_test + ", test accuracy: " + accuracy_test + "\n")

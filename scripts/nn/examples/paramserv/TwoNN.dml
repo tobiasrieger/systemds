@@ -19,6 +19,11 @@
 #
 #-------------------------------------------------------------
 
+/*
+ * This file implements all needed functions to evaluate a convolutional neural network of the "LeNet" architecture
+ * on different execution schemes and with different inputs, for example a federated input matrix
+ */
+
 # Imports
 source("nn/layers/affine.dml") as affine
 source("nn/layers/cross_entropy_loss.dml") as cross_entropy_loss
@@ -26,28 +31,50 @@ source("nn/layers/relu.dml") as relu
 source("nn/layers/softmax.dml") as softmax
 source("nn/optim/sgd.dml") as sgd
 
+/*
+ * Trains a simple feed forward neural network with two hidden layers single threaded the conventional way.
+ *
+ * The input matrix has one example per row (N) and D features.
+ * The targets, y, have K classes, and are one-hot encoded.
+ *
+ * Inputs:
+ *  - X: Input data matrix of shape (N, D)
+ *  - y: Target matrix of shape (N, K)
+ *  - X_val: Input validation data matrix of shape (N_val, D)
+ *  - y_val: Targed validation matrix of shape (N_val, K)
+ *  - epochs: Total number of full training loops over the full data set.
+ *  - batch_size: Batch size
+ *  - learning_rate: The learning rate for the SGD
+ *
+ * Outputs:
+ *  - model_trained: List containing
+ *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200).
+ *       - b1: 1st layer biases vector, of shape (D, 200).
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200).
+ *       - b2: 2nd layer biases vector, of shape (200, 200).
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K).
+ *       - b3: 3rd layer biases vector, of shape (200, K).
+ */
 train = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
                  int epochs, int batch_size, double learning_rate)
     return (list[unknown] model_trained) {
-  /*
-  *
-  */
 
   N = nrow(X)  # num examples
   D = ncol(X)  # num features
   K = ncol(y)  # num classes
 
   # Create the network:
-  ## input -> affine -> relu -> affine -> relu -> affine -> softmax
+  ## input -> affine1 -> relu1 -> affine2 -> relu2 -> affine3 -> softmax
   [W1, b1] = affine::init(D, 200)
   [W2, b2] = affine::init(200, 200)
   [W3, b3] = affine::init(200, K)
+  W3 = W3 / sqrt(2)  # different initialization, since being fed into softmax, instead of relu
 
   # Create the hyper parameter list
   hyperparams = list(learning_rate=learning_rate)
   # Calculate iterations
-  iters = floor(N / batch_size)
+  iters = ceil(N / batch_size)
   print_interval = floor(iters / 25)
 
   print("[+] Starting optimization")
@@ -79,7 +106,7 @@ train = function(matrix[double] X, matrix[double] y,
       b3 = as.matrix(model_updated[6])
 
       if((i %% print_interval) == 0) {
-        print("█%s")
+        print("█")
       }
     }
     print("|")
@@ -88,21 +115,47 @@ train = function(matrix[double] X, matrix[double] y,
   model_trained = list(W1, W2, W3, b1, b2, b3)
 }
 
+/*
+ * Trains a simple feed forward neural network with two hidden layers
+ * using a parameter server with specified properties.
+ *
+ * The input matrix has one example per row (N) and D features.
+ * The targets, y, have K classes, and are one-hot encoded.
+ *
+ * Inputs:
+ *  - X: Input data matrix of shape (N, D)
+ *  - y: Target matrix of shape (N, K)
+ *  - X_val: Input validation data matrix of shape (N_val, D)
+ *  - y_val: Targed validation matrix of shape (N_val, K)
+ *  - epochs: Total number of full training loops over the full data set.
+ *  - batch_size: Batch size
+ *  - learning_rate: The learning rate for the SGD
+ *  - workers: Number of workers to create
+ *  - utype: parameter server framework to use
+ *  - scheme: update schema
+ *  - mode: local or distributed
+ *
+ * Outputs:
+ *  - model_trained: List containing
+ *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200).
+ *       - b1: 1st layer biases vector, of shape (D, 200).
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200).
+ *       - b2: 2nd layer biases vector, of shape (200, 200).
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K).
+ *       - b3: 3rd layer biases vector, of shape (200, K).
+ */
 train_paramserv = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
                  int epochs, int workers,
                  string utype, string freq, int batch_size, string scheme, string mode, double learning_rate)
     return (list[unknown] model_trained) {
-  /*
-   *
-   */
 
   N = nrow(X)  # num examples
   D = ncol(X)  # num features
   K = ncol(y)  # num classes
 
   # Create the network:
-  ## input -> affine -> relu -> affine -> relu -> affine -> softmax
+  ## input -> affine1 -> relu1 -> affine2 -> relu2 -> affine3 -> softmax
   [W1, b1] = affine::init(D, 200)
   [W2, b2] = affine::init(200, 200)
   [W3, b3] = affine::init(200, K)
@@ -116,12 +169,25 @@ train_paramserv = function(matrix[double] X, matrix[double] y,
   model_trained = paramserv(model=model_list, features=X, labels=y, val_features=X_val, val_labels=y_val, upd="./scripts/nn/examples/paramserv/TwoNN.dml::gradients", agg="./scripts/nn/examples/paramserv/TwoNN.dml::aggregation", mode=mode, utype=utype, freq=freq, epochs=epochs, batchsize=batch_size, k=workers, scheme=scheme, hyperparams=params, checkpointing="NONE")
 }
 
+/*
+ * Computes the class probability predictions of a simple feed forward neural network.
+ *
+ * Inputs:
+ *  - X: The input data matrix of shape (N, D)
+ *  - model: List containing
+ *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200).
+ *       - b1: 1st layer biases vector, of shape (D, 200).
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200).
+ *       - b2: 2nd layer biases vector, of shape (200, 200).
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K).
+ *       - b3: 3rd layer biases vector, of shape (200, K).
+ *
+ * Outputs:
+ *  - probs: Class probabilities, of shape (N, K).
+ */
 predict = function(matrix[double] X,
                    list[unknown] model)
     return (matrix[double] probs) {
-  /*
-   *
-   */
 
   W1 = as.matrix(model[1])
   W2 = as.matrix(model[2])
@@ -135,15 +201,27 @@ predict = function(matrix[double] X,
   probs = softmax::forward(affine::forward(out2relu, W3, b3))
 }
 
-eval = function(matrix[double] probs, matrix[double] Y)
+/*
+ * Evaluates a simple feed forward neural network.
+ *
+ * The probs matrix contains the class probability predictions
+ * of K classes over N examples.  The targets, y, have K classes,
+ * and are one-hot encoded.
+ *
+ * Inputs:
+ *  - probs: Class probabilities, of shape (N, K).
+ *  - y: Target matrix, of shape (N, K).
+ *
+ * Outputs:
+ *  - loss: Scalar loss, of shape (1).
+ *  - accuracy: Scalar accuracy, of shape (1).
+ */
+eval = function(matrix[double] probs, matrix[double] y)
     return (double loss, double accuracy) {
-  /*
-   *
-   */
 
   # Compute loss & accuracy
-  loss = cross_entropy_loss::forward(probs, Y)
-  correct_pred = rowIndexMax(probs) == rowIndexMax(Y)
+  loss = cross_entropy_loss::forward(probs, y)
+  correct_pred = rowIndexMax(probs) == rowIndexMax(y)
   accuracy = mean(correct_pred)
 }
 
@@ -155,9 +233,6 @@ gradients = function(list[unknown] model,
                      matrix[double] features,
                      matrix[double] labels)
     return (list[unknown] gradients) {
-  /*
-   *
-   */
 
   W1 = as.matrix(model[1])
   W2 = as.matrix(model[2])
@@ -167,7 +242,7 @@ gradients = function(list[unknown] model,
   b3 = as.matrix(model[6])
 
   # Compute forward pass
-  ## input -> affine -> relu -> affine -> relu -> affine -> softmax
+  ## input -> affine1 -> relu1 -> affine2 -> relu2 -> affine3 -> softmax
   out1 = affine::forward(features, W1, b1)
   out1relu = relu::forward(out1)
   out2 = affine::forward(out1relu, W2, b2)
@@ -175,13 +250,12 @@ gradients = function(list[unknown] model,
   out3 = affine::forward(out2relu, W3, b3)
   probs = softmax::forward(out3)
 
-  # Compute loss & accuracy for training & validation data
+  # Compute loss & accuracy for training data
   loss = cross_entropy_loss::forward(probs, labels)
   accuracy = mean(rowIndexMax(probs) == rowIndexMax(labels))
   print("[+] Completed forward pass on batch: train loss: " + loss + ", train accuracy: " + accuracy)
 
   # Compute data backward pass
-  ## loss:
   dprobs = cross_entropy_loss::backward(probs, labels)
   dout3 = softmax::backward(dprobs, out3)
   [dout2relu, dW3, db3] = affine::backward(dout3, out2relu, W3, b3)
@@ -199,9 +273,6 @@ aggregation = function(list[unknown] model,
                        list[unknown] hyperparams,
                        list[unknown] gradients)
     return (list[unknown] model_result) {
-  /*
-   *
-   */
 
   W1 = as.matrix(model[1])
   W2 = as.matrix(model[2])

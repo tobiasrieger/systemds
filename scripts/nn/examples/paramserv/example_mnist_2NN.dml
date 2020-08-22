@@ -22,9 +22,9 @@
 /*
 * Sample Invocation:
 *
-*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_2NN.dml -nvargs epochs=2 batch_size=32 learning_rate=0.2 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
+*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_2NN.dml -nvargs mode=NORMAL epochs=2 batch_size=32 learning_rate=0.01 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
 *
-*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_2NN.dml -nvargs mode=PARAMSERV epochs=2 batch_size=32 learning_rate=0.2 workers=2 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
+*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_2NN.dml -nvargs mode=PARAMSERV epochs=8 batch_size=32 workers=10 learning_rate=0.001 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
 *
 */
 
@@ -37,10 +37,10 @@ train_data = $train
 test_data = $test
 epochs = ifdef($epochs, 1)
 batch_size = ifdef($batch_size, 32)
-learning_rate = ifdef($learning_rate, 0.2)
+learning_rate = ifdef($learning_rate, 0.01)
 mode = ifdef($mode, "NORMAL")
 ## paramserv specific args
-workers = ifdef($workers, 10)
+workers = ifdef($workers, 1)
 utype = ifdef($utype, "BSP")
 freq = ifdef($freq, "BATCH")
 scheme = ifdef($scheme, "DISJOINT_CONTIGUOUS")
@@ -76,7 +76,6 @@ print("\n[+] validation loss: " + loss_val + ", validation accuracy: " + accurac
 # Read test data
 data = read(test_data, format="csv")
 n = nrow(data)
-
 # Extract images and labels
 X_test = data[,2:ncol(data)]
 y_test = data[,1]
@@ -88,4 +87,3 @@ y_test = table(seq(1, n), y_test+1, n, 10)
 probs_test = TwoNN::predict(X_test, model)
 [loss_test, accuracy_test] = TwoNN::eval(probs_test, y_test)
 print("[+] test loss: " + loss_test + ", test accuracy: " + accuracy_test + "\n")
-
