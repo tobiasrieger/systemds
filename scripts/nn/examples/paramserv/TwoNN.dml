@@ -20,8 +20,8 @@
 #-------------------------------------------------------------
 
 /*
- * This file implements all needed functions to evaluate a convolutional neural network of the "LeNet" architecture
- * on different execution schemes and with different inputs, for example a federated input matrix
+ * This file implements all needed functions to evaluate a simple feed forward neural network
+ * on different execution schemes and with different inputs, for example a federated input matrix.
  */
 
 # Imports
@@ -42,18 +42,18 @@ source("nn/optim/sgd.dml") as sgd
  *  - y: Target matrix of shape (N, K)
  *  - X_val: Input validation data matrix of shape (N_val, D)
  *  - y_val: Targed validation matrix of shape (N_val, K)
- *  - epochs: Total number of full training loops over the full data set.
+ *  - epochs: Total number of full training loops over the full data set
  *  - batch_size: Batch size
  *  - learning_rate: The learning rate for the SGD
  *
  * Outputs:
  *  - model_trained: List containing
- *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200).
- *       - b1: 1st layer biases vector, of shape (D, 200).
- *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200).
- *       - b2: 2nd layer biases vector, of shape (200, 200).
- *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K).
- *       - b3: 3rd layer biases vector, of shape (200, K).
+ *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200)
+ *       - b1: 1st layer biases vector, of shape (D, 200)
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200)
+ *       - b2: 2nd layer biases vector, of shape (200, 200)
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K)
+ *       - b3: 3rd layer biases vector, of shape (200, K)
  */
 train = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
@@ -127,7 +127,7 @@ train = function(matrix[double] X, matrix[double] y,
  *  - y: Target matrix of shape (N, K)
  *  - X_val: Input validation data matrix of shape (N_val, D)
  *  - y_val: Targed validation matrix of shape (N_val, K)
- *  - epochs: Total number of full training loops over the full data set.
+ *  - epochs: Total number of full training loops over the full data set
  *  - batch_size: Batch size
  *  - learning_rate: The learning rate for the SGD
  *  - workers: Number of workers to create
@@ -137,12 +137,12 @@ train = function(matrix[double] X, matrix[double] y,
  *
  * Outputs:
  *  - model_trained: List containing
- *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200).
- *       - b1: 1st layer biases vector, of shape (D, 200).
- *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200).
- *       - b2: 2nd layer biases vector, of shape (200, 200).
- *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K).
- *       - b3: 3rd layer biases vector, of shape (200, K).
+ *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200)
+ *       - b1: 1st layer biases vector, of shape (D, 200)
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200)
+ *       - b2: 2nd layer biases vector, of shape (200, 200)
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K)
+ *       - b3: 3rd layer biases vector, of shape (200, K)
  */
 train_paramserv = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
@@ -175,15 +175,15 @@ train_paramserv = function(matrix[double] X, matrix[double] y,
  * Inputs:
  *  - X: The input data matrix of shape (N, D)
  *  - model: List containing
- *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200).
- *       - b1: 1st layer biases vector, of shape (D, 200).
- *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200).
- *       - b2: 2nd layer biases vector, of shape (200, 200).
- *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K).
- *       - b3: 3rd layer biases vector, of shape (200, K).
+ *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200)
+ *       - b1: 1st layer biases vector, of shape (D, 200)
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200)
+ *       - b2: 2nd layer biases vector, of shape (200, 200)
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K)
+ *       - b3: 3rd layer biases vector, of shape (200, K)
  *
  * Outputs:
- *  - probs: Class probabilities, of shape (N, K).
+ *  - probs: Class probabilities, of shape (N, K)
  */
 predict = function(matrix[double] X,
                    list[unknown] model)

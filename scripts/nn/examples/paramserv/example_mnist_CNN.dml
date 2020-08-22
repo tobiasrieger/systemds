@@ -20,12 +20,45 @@
 #-------------------------------------------------------------
 
 /*
-* Sample Invocation
-*
-*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_CNN.dml -nvargs mode=NORMAL epochs=2 batchsize=32 C=1 Hin=28 Win=28 learning_rate=0.01 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
-*
-*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_CNN.dml -nvargs mode=PARAMSERV epochs=4 workers=10 batchsize=32 C=1 Hin=28 Win=28 learning_rate=0.001 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
-*/
+ * This script aims to provide an entry point to test a convolutional neural network of the "LeNet" architecture
+ * on the mnist digit recognition dataset in the different execution schemes.
+ * (Single threaded, Parameter Server or Federated)
+ * It also provides an example of how a CNN is implemented in DML for the different execution schemes.
+ *
+ * Nvargs to specify when executing via the CLI:
+ *  Required:
+ *   - train: ABSOLUTE path to the trainings data
+ *   - test: ABSOLUTE path to the test data
+ *   - C: Number of channels in the input data
+ *   - Hin: Input data height
+ *   - Win: Input data width
+ *  Optional and General:
+ *   - epochs: Number of epochs to train on
+ *   - batch_size: Batch size
+ *   - learning_rate: Learning rate "eta"
+ *   - mode: Whether to run single threaded or via the parameter server
+ *  Optional and only needed for the Parameter Server
+ *   - workers: Number of workers to spawn
+ *   - workers: Number of workers to create
+ *   - utype: parameter server framework to use
+ *   - scheme: update schema
+ *   - paramserv_mode: local or distributed
+ *
+ * Outputs:
+ *  Writes all information to stdout
+ *
+ * The MNIST Data can be downloaded as follows:
+ *  mkdir -p data/mnist/
+ *  cd data/mnist/
+ *  curl -O https://pjreddie.com/media/files/mnist_train.csv
+ *  curl -O https://pjreddie.com/media/files/mnist_test.csv
+ *
+ * Sample Invocation
+ *  - Single Threaded:
+ *      systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_CNN.dml -nvargs mode=NORMAL epochs=2 batchsize=32 C=1 Hin=28 Win=28 learning_rate=0.01 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
+ *  - With the Parameter Server
+ *      systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_CNN.dml -nvargs mode=PARAMSERV epochs=4 workers=10 batchsize=32 C=1 Hin=28 Win=28 learning_rate=0.001 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
+ */
 
 source("scripts/nn/examples/paramserv/CNN.dml") as CNN
 source("scripts/nn/layers/cross_entropy_loss.dml") as cross_entropy_loss

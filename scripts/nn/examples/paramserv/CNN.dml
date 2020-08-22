@@ -21,7 +21,7 @@
 
 /*
  * This file implements all needed functions to evaluate a convolutional neural network of the "LeNet" architecture
- * on different execution schemes and with different inputs, for example a federated input matrix
+ * on different execution schemes and with different inputs, for example a federated input matrix.
  */
 
 # Imports
@@ -43,27 +43,27 @@ source("scripts/nn/optim/sgd_nesterov.dml") as sgd_nesterov
  * classes, and are one-hot encoded.
  *
  * Inputs:
- *  - X: Input data matrix, of shape (N, C*Hin*Win).
- *  - y: Target matrix, of shape (N, K).
- *  - X_val: Input validation data matrix, of shape (N, C*Hin*Win).
- *  - y_val: Target validation matrix, of shape (N, K).
- *  - C: Number of input channels (dimensionality of input depth).
- *  - Hin: Input height.
- *  - Win: Input width.
- *  - epochs: Total number of full training loops over the full data set.
+ *  - X: Input data matrix, of shape (N, C*Hin*Win)
+ *  - y: Target matrix, of shape (N, K)
+ *  - X_val: Input validation data matrix, of shape (N, C*Hin*Win)
+ *  - y_val: Target validation matrix, of shape (N, K)
+ *  - C: Number of input channels (dimensionality of input depth)
+ *  - Hin: Input height
+ *  - Win: Input width
+ *  - epochs: Total number of full training loops over the full data set
  *  - batch_size: Batch size
  *  - learning_rate: The learning rate for the SGD
  *
  * Outputs:
  *  - model_trained: List containing
- *       - W1: 1st layer weights (parameters) matrix, of shape (F1, C*Hf*Wf).
- *       - b1: 1st layer biases vector, of shape (F1, 1).
- *       - W2: 2nd layer weights (parameters) matrix, of shape (F2, F1*Hf*Wf).
- *       - b2: 2nd layer biases vector, of shape (F2, 1).
- *       - W3: 3rd layer weights (parameters) matrix, of shape (F2*(Hin/4)*(Win/4), N3).
- *       - b3: 3rd layer biases vector, of shape (1, N3).
- *       - W4: 4th layer weights (parameters) matrix, of shape (N3, K).
- *       - b4: 4th layer biases vector, of shape (1, K).
+ *       - W1: 1st layer weights (parameters) matrix, of shape (F1, C*Hf*Wf)
+ *       - b1: 1st layer biases vector, of shape (F1, 1)
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (F2, F1*Hf*Wf)
+ *       - b2: 2nd layer biases vector, of shape (F2, 1)
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (F2*(Hin/4)*(Win/4), N3)
+ *       - b3: 3rd layer biases vector, of shape (1, N3)
+ *       - W4: 4th layer weights (parameters) matrix, of shape (N3, K)
+ *       - b4: 4th layer biases vector, of shape (1, K)
  */
 train = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
@@ -162,14 +162,14 @@ train = function(matrix[double] X, matrix[double] y,
  * classes, and are one-hot encoded.
  *
  * Inputs:
- *  - X: Input data matrix, of shape (N, C*Hin*Win).
- *  - Y: Target matrix, of shape (N, K).
- *  - X_val: Input validation data matrix, of shape (N, C*Hin*Win).
- *  - Y_val: Target validation matrix, of shape (N, K).
- *  - C: Number of input channels (dimensionality of input depth).
- *  - Hin: Input height.
- *  - Win: Input width.
- *  - epochs: Total number of full training loops over the full data set.
+ *  - X: Input data matrix, of shape (N, C*Hin*Win)
+ *  - Y: Target matrix, of shape (N, K)
+ *  - X_val: Input validation data matrix, of shape (N, C*Hin*Win)
+ *  - Y_val: Target validation matrix, of shape (N, K)
+ *  - C: Number of input channels (dimensionality of input depth)
+ *  - Hin: Input height
+ *  - Win: Input width
+ *  - epochs: Total number of full training loops over the full data set
  *  - batch_size: Batch size
  *  - learning_rate: The learning rate for the SGD
  *  - workers: Number of workers to create
@@ -179,14 +179,14 @@ train = function(matrix[double] X, matrix[double] y,
  *
  * Outputs:
  *  - model_trained: List containing
- *       - W1: 1st layer weights (parameters) matrix, of shape (F1, C*Hf*Wf).
- *       - b1: 1st layer biases vector, of shape (F1, 1).
- *       - W2: 2nd layer weights (parameters) matrix, of shape (F2, F1*Hf*Wf).
- *       - b2: 2nd layer biases vector, of shape (F2, 1).
- *       - W3: 3rd layer weights (parameters) matrix, of shape (F2*(Hin/4)*(Win/4), N3).
- *       - b3: 3rd layer biases vector, of shape (1, N3).
- *       - W4: 4th layer weights (parameters) matrix, of shape (N3, K).
- *       - b4: 4th layer biases vector, of shape (1, K).
+ *       - W1: 1st layer weights (parameters) matrix, of shape (F1, C*Hf*Wf)
+ *       - b1: 1st layer biases vector, of shape (F1, 1)
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (F2, F1*Hf*Wf)
+ *       - b2: 2nd layer biases vector, of shape (F2, 1)
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (F2*(Hin/4)*(Win/4), N3)
+ *       - b3: 3rd layer biases vector, of shape (1, N3)
+ *       - W4: 4th layer weights (parameters) matrix, of shape (N3, K)
+ *       - b4: 4th layer biases vector, of shape (1, K)
  */
 train_paramserv = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
@@ -241,23 +241,23 @@ train_paramserv = function(matrix[double] X, matrix[double] y,
  * volume unrolled into a single vector.
  *
  * Inputs:
- *  - X: Input data matrix, of shape (N, C*Hin*Win).
- *  - C: Number of input channels (dimensionality of input depth).
- *  - Hin: Input height.
- *  - Win: Input width.
- *  - batch_size: Batch size.
+ *  - X: Input data matrix, of shape (N, C*Hin*Win)
+ *  - C: Number of input channels (dimensionality of input depth)
+ *  - Hin: Input height
+ *  - Win: Input width
+ *  - batch_size: Batch size
  *  - model: List containing
- *       - W1: 1st layer weights (parameters) matrix, of shape (F1, C*Hf*Wf).
- *       - b1: 1st layer biases vector, of shape (F1, 1).
- *       - W2: 2nd layer weights (parameters) matrix, of shape (F2, F1*Hf*Wf).
- *       - b2: 2nd layer biases vector, of shape (F2, 1).
- *       - W3: 3rd layer weights (parameters) matrix, of shape (F2*(Hin/4)*(Win/4), N3).
- *       - b3: 3rd layer biases vector, of shape (1, N3).
- *       - W4: 4th layer weights (parameters) matrix, of shape (N3, K).
- *       - b4: 4th layer biases vector, of shape (1, K).
+ *       - W1: 1st layer weights (parameters) matrix, of shape (F1, C*Hf*Wf)
+ *       - b1: 1st layer biases vector, of shape (F1, 1)
+ *       - W2: 2nd layer weights (parameters) matrix, of shape (F2, F1*Hf*Wf)
+ *       - b2: 2nd layer biases vector, of shape (F2, 1)
+ *       - W3: 3rd layer weights (parameters) matrix, of shape (F2*(Hin/4)*(Win/4), N3)
+ *       - b3: 3rd layer biases vector, of shape (1, N3)
+ *       - W4: 4th layer weights (parameters) matrix, of shape (N3, K)
+ *       - b4: 4th layer biases vector, of shape (1, K)
  *
  * Outputs:
- *  - probs: Class probabilities, of shape (N, K).
+ *  - probs: Class probabilities, of shape (N, K)
  */
 predict = function(matrix[double] X, int C, int Hin, int Win, int batch_size, list[unknown] model)
     return (matrix[double] probs) {
@@ -323,12 +323,12 @@ predict = function(matrix[double] X, int C, int Hin, int Win, int batch_size, li
  * and are one-hot encoded.
  *
  * Inputs:
- *  - probs: Class probabilities, of shape (N, K).
- *  - y: Target matrix, of shape (N, K).
+ *  - probs: Class probabilities, of shape (N, K)
+ *  - y: Target matrix, of shape (N, K)
  *
  * Outputs:
- *  - loss: Scalar loss, of shape (1).
- *  - accuracy: Scalar accuracy, of shape (1).
+ *  - loss: Scalar loss, of shape (1)
+ *  - accuracy: Scalar accuracy, of shape (1)
  */
 eval = function(matrix[double] probs, matrix[double] y)
     return (double loss, double accuracy) {
