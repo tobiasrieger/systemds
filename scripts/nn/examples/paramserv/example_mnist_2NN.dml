@@ -1,0 +1,91 @@
+#-------------------------------------------------------------
+#
+# Licensed to the Apache Software Foundation (ASF) under one
+# or more contributor license agreements.  See the NOTICE file
+# distributed with this work for additional information
+# regarding copyright ownership.  The ASF licenses this file
+# to you under the Apache License, Version 2.0 (the
+# "License"); you may not use this file except in compliance
+# with the License.  You may obtain a copy of the License at
+#
+#   http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing,
+# software distributed under the License is distributed on an
+# "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+# KIND, either express or implied.  See the License for the
+# specific language governing permissions and limitations
+# under the License.
+#
+#-------------------------------------------------------------
+
+/*
+* Sample Invocation:
+*
+*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_2NN.dml -nvargs epochs=2 batch_size=32 learning_rate=0.2 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
+*
+*  systemds ~/Developer/systemds/scripts/nn/examples/paramserv/example_mnist_2NN.dml -nvargs mode=PARAMSERV epochs=2 batch_size=32 learning_rate=0.2 workers=2 train=/Users/tobias/Developer/mnist_data/mnist_train.csv test=/Users/tobias/Developer/mnist_data/mnist_test.csv
+*
+*/
+
+source("scripts/nn/examples/paramserv/TwoNN.dml") as TwoNN
+source("scripts/nn/layers/cross_entropy_loss.dml") as cross_entropy_loss
+
+# Parse nvargs
+## general args
+train_data = $train
+test_data = $test
+epochs = ifdef($epochs, 1)
+batch_size = ifdef($batch_size, 32)
+learning_rate = ifdef($learning_rate, 0.2)
+mode = ifdef($mode, "NORMAL")
+## paramserv specific args
+workers = ifdef($workers, 10)
+utype = ifdef($utype, "BSP")
+freq = ifdef($freq, "BATCH")
+scheme = ifdef($scheme, "DISJOINT_CONTIGUOUS")
+paramserv_mode = ifdef($paramserv_mode, "LOCAL")
+
+# Read training data
+data = read(train_data, format="csv")
+n = nrow(data)
+# Extract images and labels
+images = data[,2:ncol(data)]
+labels = data[,1]
+# Scale images to [0,1], and one-hot encode the labels
+images = images / 255.0
+labels = table(seq(1, n), labels+1, n, 10)
+# Split into training (55,000 examples) and validation (5,000 examples)
+X = images[5001:nrow(images),]
+X_val = images[1:5000,]
+y = labels[5001:nrow(images),]
+y_val = labels[1:5000,]
+
+# differentiate test modes
+if (mode == "NORMAL") {
+  model = TwoNN::train(X, y, X_val, y_val, epochs, batch_size, learning_rate)
+} else if (mode == "PARAMSERV") {
+  model = TwoNN::train_paramserv(X, y, X_val, y_val, epochs, workers, utype, freq, batch_size, scheme, paramserv_mode, learning_rate)
+}
+
+# Compute validation loss & accuracy
+probs_val = TwoNN::predict(X_val, model)
+[loss_val, accuracy_val] = TwoNN::eval(probs_val, y_val)
+print("\n[+] validation loss: " + loss_val + ", validation accuracy: " + accuracy_val)
+
+# Read test data
+data = read(test_data, format="csv")
+n = nrow(data)
+
+# Extract images and labels
+X_test = data[,2:ncol(data)]
+y_test = data[,1]
+# Scale images to [0,1], and one-hot encode the labels
+X_test = X_test / 255.0
+y_test = table(seq(1, n), y_test+1, n, 10)
+
+# Compute test loss & accuracy
+probs_test = TwoNN::predict(X_test, model)
+[loss_test, accuracy_test] = TwoNN::eval(probs_test, y_test)
+print("[+] test loss: " + loss_test + ", test accuracy: " + accuracy_test + "\n")
+
