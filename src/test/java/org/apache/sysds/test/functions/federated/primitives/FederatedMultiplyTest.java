@@ -106,6 +106,8 @@ public class FederatedMultiplyTest extends AutomatedTestBase {
 		fullDMLScriptName = HOME + TEST_NAME + "Reference.dml";
 		programArgs = new String[] {"-nvargs", "X1=" + input("X1"), "X2=" + input("X2"), "Y1=" + input("Y1"),
 			"Y2=" + input("Y2"), "Z=" + expected("Z")};
+
+		System.out.println(Arrays.toString(programArgs));
 		runTest(true, false, null, -1);
 
 		// Run actual dml script with federated matrix
@@ -114,6 +116,7 @@ public class FederatedMultiplyTest extends AutomatedTestBase {
 			"X2=" + TestUtils.federatedAddress(port2, input("X2")),
 			"Y1=" + TestUtils.federatedAddress(port1, input("Y1")),
 			"Y2=" + TestUtils.federatedAddress(port2, input("Y2")), "r=" + rows, "c=" + cols, "Z=" + output("Z")};
+		System.out.println(Arrays.toString(programArgs));
 		runTest(true, false, null, -1);
 
 		// compare via files
