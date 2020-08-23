@@ -49,11 +49,11 @@ source("nn/optim/sgd.dml") as sgd
  * Outputs:
  *  - model_trained: List containing
  *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200)
- *       - b1: 1st layer biases vector, of shape (D, 200)
+ *       - b1: 1st layer biases vector, of shape (200, 1)
  *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200)
- *       - b2: 2nd layer biases vector, of shape (200, 200)
+ *       - b2: 2nd layer biases vector, of shape (200, 1)
  *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K)
- *       - b3: 3rd layer biases vector, of shape (200, K)
+ *       - b3: 3rd layer biases vector, of shape (K, 1)
  */
 train = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
@@ -138,11 +138,11 @@ train = function(matrix[double] X, matrix[double] y,
  * Outputs:
  *  - model_trained: List containing
  *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200)
- *       - b1: 1st layer biases vector, of shape (D, 200)
+ *       - b1: 1st layer biases vector, of shape (200, 1)
  *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200)
- *       - b2: 2nd layer biases vector, of shape (200, 200)
+ *       - b2: 2nd layer biases vector, of shape (200, 1)
  *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K)
- *       - b3: 3rd layer biases vector, of shape (200, K)
+ *       - b3: 3rd layer biases vector, of shape (K, 1)
  */
 train_paramserv = function(matrix[double] X, matrix[double] y,
                  matrix[double] X_val, matrix[double] y_val,
@@ -176,11 +176,11 @@ train_paramserv = function(matrix[double] X, matrix[double] y,
  *  - X: The input data matrix of shape (N, D)
  *  - model: List containing
  *       - W1: 1st layer weights (parameters) matrix, of shape (D, 200)
- *       - b1: 1st layer biases vector, of shape (D, 200)
+ *       - b1: 1st layer biases vector, of shape (200, 1)
  *       - W2: 2nd layer weights (parameters) matrix, of shape (200, 200)
- *       - b2: 2nd layer biases vector, of shape (200, 200)
+ *       - b2: 2nd layer biases vector, of shape (200, 1)
  *       - W3: 3rd layer weights (parameters) matrix, of shape (200, K)
- *       - b3: 3rd layer biases vector, of shape (200, K)
+ *       - b3: 3rd layer biases vector, of shape (K, 1)
  *
  * Outputs:
  *  - probs: Class probabilities, of shape (N, K)
